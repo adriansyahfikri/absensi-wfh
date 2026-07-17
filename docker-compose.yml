@@ -1,0 +1,70 @@
+# Brings up the full stack with a single command:
+#   docker-compose up --build
+#
+# Only the Gateway is published to the host (port 3000). The two
+# microservices are reachable only on the internal Docker network,
+# addressed by their service names (employee-service, attendance-service) —
+# which is exactly what EMPLOYEE_SERVICE_HOST / ATTENDANCE_SERVICE_HOST
+# point to in .env.
+
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      # Gateway/services wait until MySQL actually accepts connections,
+      # not just until the container starts.
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-p${DB_PASSWORD}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  employee-service:
+    build: .
+    image: absensi-wfh:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP: employee-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  attendance-service:
+    build: .
+    image: absensi-wfh:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP: attendance-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  gateway:
+    build: .
+    image: absensi-wfh:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP: gateway
+    ports:
+      - '3000:3000'
+    volumes:
+      # Uploaded WFH photos persist on the host and are written by the Gateway.
+      - ./uploads:/app/uploads
+    depends_on:
+      - employee-service
+      - attendance-service
+
+volumes:
+  mysql_data:

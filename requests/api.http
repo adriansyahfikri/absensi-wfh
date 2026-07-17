@@ -1,0 +1,153 @@
+### WFH Attendance & Employee Monitoring — manual API test flow
+### Requires the VS Code "REST Client" extension (humao.rest-client).
+### Run requests top to bottom — each step depends on the previous one.
+###
+### Prerequisites:
+### 1. docker compose up --build (see docker-compose.yml)
+### 2. GET {{baseUrl}}/health returns "ok" for gateway, employeeService, attendanceService
+### 3. Bootstrap the first admin: `node scripts/seed-admin.js admin Admin123!`,
+###    run the printed INSERT statement against the wfh_attendance database.
+###
+### After each login response, copy the "accessToken" value into the
+### @adminToken / @employeeToken variables below, then re-run from there.
+
+@baseUrl = http://localhost:3000
+@adminToken = PASTE_ADMIN_TOKEN_HERE
+@employeeToken = PASTE_EMPLOYEE_TOKEN_HERE
+@employeeId = 1
+
+### 0. Health check — confirms gateway + both microservices are reachable
+GET {{baseUrl}}/health
+
+### 1. Login as the seeded admin
+# POST /auth/login (public). Copy `accessToken` from the response into @adminToken above.
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Admin123!"
+}
+
+### 2. Create an employee (admin only) — also creates its login user (role EMPLOYEE)
+POST {{baseUrl}}/employees
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "employeeCode": "EMP001",
+  "fullName": "Budi Santoso",
+  "position": "Software Engineer",
+  "department": "Engineering",
+  "email": "budi.santoso@example.com",
+  "username": "budi",
+  "password": "Budi123!"
+}
+
+### 3. List all employees (admin only)
+GET {{baseUrl}}/employees
+Authorization: Bearer {{adminToken}}
+
+### 3b. List employees filtered by status/search
+GET {{baseUrl}}/employees?status=ACTIVE&search=budi
+Authorization: Bearer {{adminToken}}
+
+### 4. Get one employee by id (admin only) — set @employeeId from step 2/3's response
+GET {{baseUrl}}/employees/{{employeeId}}
+Authorization: Bearer {{adminToken}}
+
+### 5. Update an employee (admin only)
+PATCH {{baseUrl}}/employees/{{employeeId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "position": "Senior Software Engineer"
+}
+
+### 6. Login as the employee created in step 2
+# Copy `accessToken` from the response into @employeeToken above.
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "budi",
+  "password": "Budi123!"
+}
+
+### 7. Check in (employee only) — multipart upload, photo field name MUST be "photo"
+POST {{baseUrl}}/attendance/check-in
+Authorization: Bearer {{employeeToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="photo"; filename="checkin.png"
+Content-Type: image/png
+
+< ./sample-photo.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 7b. Check in again the same day — expect 409 "Already checked in today"
+POST {{baseUrl}}/attendance/check-in
+Authorization: Bearer {{employeeToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="photo"; filename="checkin.png"
+Content-Type: image/png
+
+< ./sample-photo.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 7c. Check in with no photo field at all — expect 400 "Photo proof is required"
+POST {{baseUrl}}/attendance/check-in
+Authorization: Bearer {{employeeToken}}
+Content-Type: application/json
+
+{}
+
+### 8. Check out (employee only)
+PATCH {{baseUrl}}/attendance/check-out
+Authorization: Bearer {{employeeToken}}
+
+### 8b. Check out again — expect 409 "Already checked out today"
+PATCH {{baseUrl}}/attendance/check-out
+Authorization: Bearer {{employeeToken}}
+
+### 9. View own attendance history (employee only)
+GET {{baseUrl}}/attendance/me
+Authorization: Bearer {{employeeToken}}
+
+### 10. View all attendance records (admin only), optionally filtered
+GET {{baseUrl}}/attendance
+Authorization: Bearer {{adminToken}}
+
+### 10b. Filter by date and/or employeeId
+GET {{baseUrl}}/attendance?employeeId={{employeeId}}&date=2026-07-18
+Authorization: Bearer {{adminToken}}
+
+### 11. Soft delete the employee (admin only) — sets status to INACTIVE, no hard delete
+DELETE {{baseUrl}}/employees/{{employeeId}}
+Authorization: Bearer {{adminToken}}
+
+### --- Negative / guard tests ---
+
+### N1. Employee token hitting an admin-only route — expect 403 Forbidden
+GET {{baseUrl}}/employees
+Authorization: Bearer {{employeeToken}}
+
+### N2. No token at all on a protected route — expect 401 Unauthorized
+GET {{baseUrl}}/employees
+
+### N3. Garbage token — expect 401 Unauthorized
+GET {{baseUrl}}/employees
+Authorization: Bearer this.is.not.a.valid.jwt
+
+### N4. Wrong password on login — expect 401 Unauthorized
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "budi",
+  "password": "wrong-password"
+}
