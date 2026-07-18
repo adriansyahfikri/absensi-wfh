@@ -68,7 +68,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --color-paper: oklch(20% 0.014 258);
     --color-paper-2: oklch(24% 0.016 258);
     --color-paper-3: oklch(29% 0.018 258);
