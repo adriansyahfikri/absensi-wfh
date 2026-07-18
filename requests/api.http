@@ -12,8 +12,8 @@
 ### @adminToken / @employeeToken variables below, then re-run from there.
 
 @baseUrl = http://localhost:3000
-@adminToken = PASTE_ADMIN_TOKEN_HERE
-@employeeToken = PASTE_EMPLOYEE_TOKEN_HERE
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJyb2xlIjoiQURNSU4iLCJlbXBsb3llZUlkIjpudWxsLCJpYXQiOjE3ODQzMzU1OTksImV4cCI6MTc4NDQyMTk5OX0.qL_dSbWaT0rqpJ3C7jf816o3NUl94SfKGyY0Sv0sKb0
+@employeeToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInVzZXJuYW1lIjoiZmlrcmlhZHJpYW5zeWFoIiwicm9sZSI6IkVNUExPWUVFIiwiZW1wbG95ZWVJZCI6MSwiaWF0IjoxNzg0MzM1NzQwLCJleHAiOjE3ODQ0MjIxNDB9.Rem-HiK-oDehO9WIwHA8LGIXIypzmo62Qhkhywuqgpo
 @employeeId = 1
 
 ### 0. Health check — confirms gateway + both microservices are reachable
@@ -36,12 +36,12 @@ Content-Type: application/json
 
 {
   "employeeCode": "EMP001",
-  "fullName": "Budi Santoso",
+  "fullName": "Fikri Adriansyah",
   "position": "Software Engineer",
   "department": "Engineering",
-  "email": "budi.santoso@example.com",
-  "username": "budi",
-  "password": "Budi123!"
+  "email": "fikri.adriansyah@dexa.co.id",
+  "username": "fikriadriansyah",
+  "password": "Password123!"
 }
 
 ### 3. List all employees (admin only)
@@ -49,7 +49,7 @@ GET {{baseUrl}}/employees
 Authorization: Bearer {{adminToken}}
 
 ### 3b. List employees filtered by status/search
-GET {{baseUrl}}/employees?status=ACTIVE&search=budi
+GET {{baseUrl}}/employees?status=ACTIVE&search=fikri
 Authorization: Bearer {{adminToken}}
 
 ### 4. Get one employee by id (admin only) — set @employeeId from step 2/3's response
@@ -71,8 +71,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "budi",
-  "password": "Budi123!"
+  "username": "fikriadriansyah",
+  "password": "Password123!"
 }
 
 ### 7. Check in (employee only) — multipart upload, photo field name MUST be "photo"
@@ -148,6 +148,6 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "budi",
+  "username": "fikriadriansyah",
   "password": "wrong-password"
 }

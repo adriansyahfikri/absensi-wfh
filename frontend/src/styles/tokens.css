@@ -1,0 +1,111 @@
+/* Hallmark tokens · genre: modern-minimal · theme: Cobalt (adapted for an internal
+ * application shell, not a marketing page — no hero/nav-marketing tokens here) */
+
+:root {
+  /* --- Paper / ink (cool engineered near-white, never pure #fff/#000) --- */
+  --color-paper: oklch(98.5% 0.004 250);
+  --color-paper-2: oklch(96.5% 0.005 250);
+  --color-paper-3: oklch(93.5% 0.006 252);
+  --color-ink: oklch(24% 0.02 258);
+  --color-ink-2: oklch(34% 0.018 257);
+  --color-ink-3: oklch(52% 0.014 256);
+
+  /* --- The one signal accent --- */
+  --color-accent: oklch(58% 0.2 256);
+  --color-accent-ink: oklch(99% 0.004 250);
+  --color-accent-soft: oklch(94% 0.03 256);
+
+  /* --- Semantic status (used sparingly, same chroma discipline as accent) --- */
+  --color-success: oklch(56% 0.14 152);
+  --color-success-soft: oklch(94% 0.04 152);
+  --color-danger: oklch(56% 0.19 25);
+  --color-danger-soft: oklch(94% 0.04 25);
+  --color-warning: oklch(68% 0.15 80);
+  --color-warning-soft: oklch(94% 0.05 80);
+
+  /* --- Structure --- */
+  --color-rule: oklch(88% 0.006 252);
+  --color-rule-2: oklch(80% 0.008 254);
+  --color-graphite: oklch(22% 0.016 260);
+  --color-focus: oklch(58% 0.2 256);
+
+  /* --- Fonts --- */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* --- Type scale --- */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.625rem;
+  --text-2xl: 2rem;
+
+  /* --- Spacing (4pt scale) --- */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* --- Radii (drawn with a ruler, not soft pills) --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* --- Motion --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 400ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: oklch(20% 0.014 258);
+    --color-paper-2: oklch(24% 0.016 258);
+    --color-paper-3: oklch(29% 0.018 258);
+    --color-ink: oklch(96% 0.004 250);
+    --color-ink-2: oklch(84% 0.008 252);
+    --color-ink-3: oklch(66% 0.012 254);
+    --color-rule: oklch(34% 0.016 258);
+    --color-rule-2: oklch(42% 0.018 258);
+    --color-accent-soft: oklch(30% 0.06 256);
+    --color-success-soft: oklch(28% 0.06 152);
+    --color-danger-soft: oklch(30% 0.07 25);
+    --color-warning-soft: oklch(32% 0.06 80);
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-paper: oklch(20% 0.014 258);
+  --color-paper-2: oklch(24% 0.016 258);
+  --color-paper-3: oklch(29% 0.018 258);
+  --color-ink: oklch(96% 0.004 250);
+  --color-ink-2: oklch(84% 0.008 252);
+  --color-ink-3: oklch(66% 0.012 254);
+  --color-rule: oklch(34% 0.016 258);
+  --color-rule-2: oklch(42% 0.018 258);
+  --color-accent-soft: oklch(30% 0.06 256);
+  --color-success-soft: oklch(28% 0.06 152);
+  --color-danger-soft: oklch(30% 0.07 25);
+  --color-warning-soft: oklch(32% 0.06 80);
+}
+
+:root[data-theme='light'] {
+  --color-paper: oklch(98.5% 0.004 250);
+  --color-paper-2: oklch(96.5% 0.005 250);
+  --color-paper-3: oklch(93.5% 0.006 252);
+  --color-ink: oklch(24% 0.02 258);
+  --color-ink-2: oklch(34% 0.018 257);
+  --color-ink-3: oklch(52% 0.014 256);
+  --color-rule: oklch(88% 0.006 252);
+  --color-rule-2: oklch(80% 0.008 254);
+}
