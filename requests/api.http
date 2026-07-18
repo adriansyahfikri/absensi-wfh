@@ -12,8 +12,8 @@
 ### @adminToken / @employeeToken variables below, then re-run from there.
 
 @baseUrl = http://localhost:3000
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJyb2xlIjoiQURNSU4iLCJlbXBsb3llZUlkIjpudWxsLCJpYXQiOjE3ODQzMzU1OTksImV4cCI6MTc4NDQyMTk5OX0.qL_dSbWaT0rqpJ3C7jf816o3NUl94SfKGyY0Sv0sKb0
-@employeeToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInVzZXJuYW1lIjoiZmlrcmlhZHJpYW5zeWFoIiwicm9sZSI6IkVNUExPWUVFIiwiZW1wbG95ZWVJZCI6MSwiaWF0IjoxNzg0MzM1NzQwLCJleHAiOjE3ODQ0MjIxNDB9.Rem-HiK-oDehO9WIwHA8LGIXIypzmo62Qhkhywuqgpo
+@adminToken = PASTE_ADMIN_TOKEN_HERE
+@employeeToken = PASTE_EMPLOYEE_TOKEN_HERE
 @employeeId = 1
 
 ### 0. Health check — confirms gateway + both microservices are reachable
