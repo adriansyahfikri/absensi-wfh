@@ -1,0 +1,56 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+.app-shell__wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: var(--text-md);
+  color: var(--color-ink);
+}
+
+.app-shell__account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.app-shell__username {
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+
+.app-shell__content {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+@media (max-width: 480px) {
+  .app-shell__content {
+    padding: var(--space-lg) var(--space-md);
+  }
+  .app-shell__username {
+    display: none;
+  }
+}

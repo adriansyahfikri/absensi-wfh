@@ -1,0 +1,53 @@
+.checkin-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+.checkin-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  max-width: 420px;
+}
+
+.checkin-card h1 {
+  font-size: var(--text-xl);
+}
+
+.checkin-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.checkin-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  color: var(--color-ink-2);
+}
+
+.checkin-status strong {
+  font-family: var(--font-mono);
+  color: var(--color-ink);
+}
+
+.checkin-banner {
+  font-size: var(--text-sm);
+  color: var(--color-success);
+  margin: 0;
+}
+
+.checkin-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.checkin-history h2 {
+  font-size: var(--text-lg);
+}

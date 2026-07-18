@@ -1,12 +1,14 @@
-export enum Role {
-  ADMIN = 'ADMIN',
-  EMPLOYEE = 'EMPLOYEE',
-}
+export const Role = {
+  ADMIN: 'ADMIN',
+  EMPLOYEE: 'EMPLOYEE',
+} as const;
+export type Role = (typeof Role)[keyof typeof Role];
 
-export enum EmployeeStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
+export const EmployeeStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+} as const;
+export type EmployeeStatus = (typeof EmployeeStatus)[keyof typeof EmployeeStatus];
 
 export interface JwtPayload {
   sub: number;

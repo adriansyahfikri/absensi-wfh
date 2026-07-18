@@ -2,13 +2,15 @@ import { Controller, Get, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { SERVICE_NAMES } from '@app/common';
 import { catchError, firstValueFrom, of, timeout } from 'rxjs';
+import { Public } from './auth/decorators/public.decorator';
 
 /**
  * GET /health
  * Confirms the whole stack is alive: the Gateway itself plus a live ping
  * to both microservices over TCP. If a service is down, its status shows
  * 'down' instead of crashing the request — so you can see exactly which
- * piece isn't up yet.
+ * piece isn't up yet. Public: monitoring/infra must be able to call this
+ * without a token.
  */
 @Controller('health')
 export class AppController {
@@ -19,6 +21,7 @@ export class AppController {
     private readonly attendanceClient: ClientProxy,
   ) {}
 
+  @Public()
   @Get()
   async check() {
     const ping = (client: ClientProxy) =>

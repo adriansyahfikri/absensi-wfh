@@ -55,7 +55,9 @@ export class AttendanceController {
     }
     return sendTcp(this.attendanceClient, ATTENDANCE_PATTERNS.CHECK_IN, {
       employeeId: user.employeeId,
-      photoPath: photo.path,
+      // Just the filename, not photo.path (an OS-specific disk path) — the
+      // frontend builds the public URL as `${API_URL}/uploads/${photoPath}`.
+      photoPath: photo.filename,
     });
   }
 
