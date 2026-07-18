@@ -1,76 +1,65 @@
-.photo-uploader {
+.camera-capture {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
 }
 
-.photo-uploader__label {
+.camera-capture__label {
   display: block;
 }
 
-.photo-uploader__zone {
+.camera-capture__zone {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 180px;
+  min-height: 220px;
   border: 1px dashed var(--color-rule-2);
   border-radius: var(--radius-md);
   background: var(--color-paper-2);
-  cursor: pointer;
   overflow: hidden;
   transition: border-color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out);
 }
 
-.photo-uploader__zone:hover {
-  border-color: var(--color-accent);
-  background: var(--color-accent-soft);
-}
-
-.photo-uploader__zone:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-.photo-uploader__zone:active {
-  transform: scale(0.995);
-}
-
-.photo-uploader__zone[data-drag-active] {
-  border-color: var(--color-accent);
-  border-style: solid;
-  background: var(--color-accent-soft);
-}
-
-.photo-uploader__zone[data-disabled] {
-  cursor: not-allowed;
+.camera-capture__zone[data-disabled] {
   opacity: 0.5;
 }
 
-.photo-uploader__zone[data-state='loading'] {
-  cursor: wait;
+.camera-capture__zone[data-state='loading'] {
   border-style: solid;
 }
 
-.photo-uploader__zone[data-state='error'] {
+.camera-capture__zone[data-state='error'] {
   border-color: var(--color-danger);
   border-style: solid;
   background: var(--color-danger-soft);
 }
 
-.photo-uploader__zone[data-state='success'] {
+.camera-capture__zone[data-state='success'] {
   border-color: var(--color-success);
   border-style: solid;
 }
 
-.photo-uploader__input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
+.camera-capture__video,
+.camera-capture__preview {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
 }
 
-.photo-uploader__placeholder {
+.camera-capture__video {
+  /* Mirror the live preview so it feels like a selfie viewfinder — the
+     captured still frame itself is NOT mirrored (see handleCapture). */
+  transform: scaleX(-1);
+  background: var(--color-graphite);
+}
+
+.camera-capture__canvas {
+  display: none;
+}
+
+.camera-capture__placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -81,29 +70,26 @@
   text-align: center;
 }
 
-.photo-uploader__preview {
-  width: 100%;
-  height: 100%;
-  min-height: 180px;
-  object-fit: cover;
+.camera-capture__placeholder--error {
+  color: var(--color-danger);
 }
 
-.photo-uploader__spinner {
+.camera-capture__spinner {
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
   border: 2px solid var(--color-rule-2);
   border-top-color: var(--color-accent);
-  animation: photo-uploader-spin 0.7s linear infinite;
+  animation: camera-capture-spin 0.7s linear infinite;
 }
 
-@keyframes photo-uploader-spin {
+@keyframes camera-capture-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-.photo-uploader__badge {
+.camera-capture__badge {
   position: absolute;
   top: var(--space-xs);
   right: var(--space-xs);
@@ -116,30 +102,35 @@
   font-size: var(--text-sm);
 }
 
-.photo-uploader__badge--success {
+.camera-capture__badge--success {
   background: var(--color-success);
   color: var(--color-accent-ink);
 }
 
-.photo-uploader__message {
+.camera-capture__actions {
+  display: flex;
+  justify-content: center;
+}
+
+.camera-capture__message {
   font-size: var(--text-sm);
   color: var(--color-ink-3);
   margin: 0;
 }
 
-.photo-uploader__message--error {
+.camera-capture__message--error {
   color: var(--color-danger);
 }
 
-.photo-uploader__message--success {
+.camera-capture__message--success {
   color: var(--color-success);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .photo-uploader__zone {
+  .camera-capture__zone {
     transition: none;
   }
-  .photo-uploader__spinner {
+  .camera-capture__spinner {
     animation-duration: 1.4s;
   }
 }
