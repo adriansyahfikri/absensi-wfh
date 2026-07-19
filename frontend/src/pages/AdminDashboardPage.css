@@ -53,7 +53,7 @@
   display: flex;
   gap: var(--space-xs);
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .admin-page__photo-link {

@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../auth/AuthContext';
 import { api, ApiError } from '../api/client';
 import { EmployeeStatus, type Attendance, type Employee } from '../api/types';
@@ -38,7 +40,8 @@ export function AdminDashboardPage() {
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('');
-  const [employeeIdFilter, setEmployeeIdFilter] = useState('');
+  const [employeeSearch, setEmployeeSearch] = useState('');
+  const [employeeDirectory, setEmployeeDirectory] = useState<Map<number, Employee>>(new Map());
 
   const loadEmployees = useCallback(async () => {
     setEmployeesLoading(true);
@@ -54,23 +57,51 @@ export function AdminDashboardPage() {
     }
   }, [token, statusFilter, search]);
 
+  // Unfiltered, independent of the Employees tab's search/status filters —
+  // the attendance table needs to resolve every employeeId it sees, not
+  // just whichever subset the admin last searched for.
+  const loadEmployeeDirectory = useCallback(async () => {
+    const data = await api.get<Employee[]>('/employees', token);
+    setEmployeeDirectory(new Map(data.map((employee) => [employee.id, employee])));
+  }, [token]);
+
   const loadAttendance = useCallback(async () => {
     setAttendanceLoading(true);
     try {
       const params = new URLSearchParams();
       if (dateFilter) params.set('date', dateFilter);
-      if (employeeIdFilter) params.set('employeeId', employeeIdFilter);
       const query = params.toString();
       const data = await api.get<Attendance[]>(`/attendance${query ? `?${query}` : ''}`, token);
       setAttendance(data);
     } finally {
       setAttendanceLoading(false);
     }
-  }, [token, dateFilter, employeeIdFilter]);
+  }, [token, dateFilter]);
+
+  // The attendance API only filters by date/employeeId (see
+  // attendance.service.ts findAll) — there's no server-side text search, so
+  // matching by employee code/name is done here against the already-loaded
+  // page using the employee directory.
+  const visibleAttendance = useMemo(() => {
+    const query = employeeSearch.trim().toLowerCase();
+    if (!query) return attendance;
+    return attendance.filter((row) => {
+      const employee = employeeDirectory.get(row.employeeId);
+      if (!employee) return false;
+      return (
+        employee.employeeCode.toLowerCase().includes(query) ||
+        employee.fullName.toLowerCase().includes(query)
+      );
+    });
+  }, [attendance, employeeDirectory, employeeSearch]);
 
   useEffect(() => {
     void loadEmployees();
   }, [loadEmployees]);
+
+  useEffect(() => {
+    void loadEmployeeDirectory();
+  }, [loadEmployeeDirectory]);
 
   useEffect(() => {
     if (tab === 'attendance') void loadAttendance();
@@ -100,6 +131,7 @@ export function AdminDashboardPage() {
   const employeeColumns: DataTableColumn<Employee>[] = [
     { key: 'code', header: 'Code', render: (row) => row.employeeCode, mono: true },
     { key: 'name', header: 'Name', render: (row) => row.fullName },
+    { key: 'email', header: 'Email', render: (row) => row.email },
     { key: 'position', header: 'Position', render: (row) => row.position },
     { key: 'department', header: 'Department', render: (row) => row.department },
     {
@@ -117,16 +149,25 @@ export function AdminDashboardPage() {
         <div className="admin-page__row-actions">
           <Button
             variant="secondary"
+            className="btn--icon"
+            aria-label="Edit employee"
+            title="Edit"
             onClick={() => {
               setEditingEmployee(row);
               setShowForm(true);
             }}
           >
-            Edit
+            <FontAwesomeIcon icon={faPenToSquare} />
           </Button>
           {row.status === EmployeeStatus.ACTIVE ? (
-            <Button variant="danger" onClick={() => handleDeactivate(row)}>
-              Deactivate
+            <Button
+              variant="danger"
+              className="btn--icon"
+              aria-label="Deactivate employee"
+              title="Deactivate"
+              onClick={() => handleDeactivate(row)}
+            >
+              <FontAwesomeIcon icon={faCircleMinus} />
             </Button>
           ) : null}
         </div>
@@ -135,7 +176,27 @@ export function AdminDashboardPage() {
   ];
 
   const attendanceColumns: DataTableColumn<Attendance>[] = [
-    { key: 'employeeId', header: 'Employee ID', render: (row) => row.employeeId, mono: true },
+    {
+      key: 'code',
+      header: 'Employee code',
+      render: (row) => employeeDirectory.get(row.employeeId)?.employeeCode ?? '—',
+      mono: true,
+    },
+    {
+      key: 'name',
+      header: 'Name',
+      render: (row) => employeeDirectory.get(row.employeeId)?.fullName ?? '—',
+    },
+    {
+      key: 'department',
+      header: 'Department',
+      render: (row) => employeeDirectory.get(row.employeeId)?.department ?? '—',
+    },
+    {
+      key: 'position',
+      header: 'Position',
+      render: (row) => employeeDirectory.get(row.employeeId)?.position ?? '—',
+    },
     { key: 'in', header: 'Check-in', render: (row) => formatDateTime(row.checkInTime) },
     { key: 'out', header: 'Check-out', render: (row) => formatDateTime(row.checkOutTime) },
     {
@@ -228,16 +289,16 @@ export function AdminDashboardPage() {
                 onChange={(e) => setDateFilter(e.target.value)}
               />
               <Field
-                label="Employee ID"
-                type="number"
-                value={employeeIdFilter}
-                onChange={(e) => setEmployeeIdFilter(e.target.value)}
+                label="Employee"
+                placeholder="Code or name"
+                value={employeeSearch}
+                onChange={(e) => setEmployeeSearch(e.target.value)}
               />
             </div>
 
             <DataTable
               columns={attendanceColumns}
-              rows={attendance}
+              rows={visibleAttendance}
               getRowKey={(row) => row.id}
               loading={attendanceLoading}
               emptyMessage="No attendance records found."
