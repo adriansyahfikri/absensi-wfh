@@ -32,12 +32,6 @@ function classifyCameraError(err: unknown): string {
   return "Couldn't access the camera. Try again.";
 }
 
-/**
- * Live-capture camera input: requests getUserMedia, shows a live preview,
- * and shoots a still frame to a File. Deliberately does not accept a
- * gallery/file picker fallback — the check-in flow requires a real-time
- * photo, not an old one from disk.
- */
 export function CameraCapture({
   value,
   onChange,
@@ -86,10 +80,6 @@ export function CameraCapture({
     }
   }, [supportsCamera]);
 
-  // The <video> element only exists in the DOM once phase is 'streaming',
-  // so the stream can't be attached inline inside startCamera — the ref
-  // isn't there yet at that point. Attach it here instead, once React has
-  // actually mounted the element.
   useEffect(() => {
     if (phase !== 'streaming') return;
     const video = videoRef.current;

@@ -53,9 +53,9 @@ export function EmployeeFormModal({ employee, onClose, onSubmit }: EmployeeFormM
         await onSubmit(values);
       }
     } catch (err) {
-      setState('idle');
       setError(err instanceof Error ? err.message : 'Something went wrong.');
-      return;
+    } finally {
+      setState('idle');
     }
   }
 

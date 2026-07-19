@@ -1,12 +1,8 @@
 # WFH Attendance & Employee Monitoring System
-
-A technical test submission for a fullstack developer recruitment process.
-
-Two use cases, one web app, role-based:
-
-- **Employee** — logs in, checks in with a photo (server-side timestamp),
+Two use cases, one web app, role:
+- Employee: logs in, checks in with a photo (server-side timestamp),
   checks out, views their own attendance history.
-- **HRD Admin** — manages employee master data (create/update/deactivate),
+- HRD Admin, manages employee master data (create/update/deactivate),
   views all attendance records (read-only, filterable by date/employee).
 
 ---
@@ -17,13 +13,6 @@ Two use cases, one web app, role-based:
 React SPA ──HTTP──▶ API Gateway ──TCP──▶ Employee Service ──▶ MySQL
                                   └─TCP──▶ Attendance Service ──▶ MySQL
 ```
-
-The brief's "API with microservices concept" requirement is fulfilled by the
-**backend**: a Gateway plus two independent NestJS microservices talking over
-TCP, each owning its own tables. The **frontend** is a single React SPA with
-role-based routing — combining the two user-facing use cases into one app was
-confirmed acceptable with the recruiter; it doesn't affect the backend's
-microservice decomposition.
 
 | Piece | What it owns |
 |---|---|

@@ -23,8 +23,6 @@ import { RolesGuard } from './guards/roles.guard';
   controllers: [AuthController],
   providers: [
     AuthService,
-    // Order matters: JwtAuthGuard must run first to populate request.user
-    // before RolesGuard reads it.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

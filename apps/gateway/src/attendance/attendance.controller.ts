@@ -25,8 +25,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { sendTcp } from '../common/tcp.util';
 
-// Minimal shape needed to resolve an employeeSearch string to ids — not the
-// full Employee entity, just enough to type the employee-service response.
 interface EmployeeIdOnly {
   id: number;
 }
@@ -40,8 +38,6 @@ export class AttendanceController {
     private readonly employeeClient: ClientProxy,
   ) {}
 
-  // Photo is stored here at the Gateway (see CONTEXT.md decision #5) —
-  // only the resulting path is sent downstream over TCP, never the binary.
   @Roles(Role.EMPLOYEE)
   @Post('check-in')
   @UseInterceptors(
@@ -64,8 +60,6 @@ export class AttendanceController {
     }
     return sendTcp(this.attendanceClient, ATTENDANCE_PATTERNS.CHECK_IN, {
       employeeId: user.employeeId,
-      // Just the filename, not photo.path (an OS-specific disk path) — the
-      // frontend builds the public URL as `${API_URL}/uploads/${photoPath}`.
       photoPath: photo.filename,
     });
   }
@@ -94,10 +88,7 @@ export class AttendanceController {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     let employeeIds: number[] | undefined;
-
-    // attendance-service can't resolve employee code/name itself (it doesn't
-    // own the employee table — see attendance.entity.ts), so the Gateway
-    // resolves the search term to employeeIds here, then filters by id.
+    
     if (query.employeeSearch) {
       const matches = await sendTcp<PaginatedResult<EmployeeIdOnly>>(
         this.employeeClient,

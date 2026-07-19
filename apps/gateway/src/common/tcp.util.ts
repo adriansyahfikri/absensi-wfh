@@ -7,10 +7,6 @@ interface RpcErrorShape {
   message?: string;
 }
 
-// Message-pattern handlers in employee-service/attendance-service throw
-// RpcException({ statusCode, message }) (see CONTEXT.md decision #6) — over
-// TCP that arrives as a plain rejected value, not a real HttpException. This
-// is the one place that translates it back into a proper HTTP response.
 export async function sendTcp<T>(
   client: ClientProxy,
   pattern: Record<string, string>,

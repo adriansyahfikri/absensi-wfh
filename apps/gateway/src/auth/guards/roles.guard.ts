@@ -14,9 +14,6 @@ interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }
 
-// Runs after JwtAuthGuard (see APP_GUARD order in auth.module.ts), so
-// request.user is already populated. Routes with no @Roles() metadata are
-// left open to any authenticated user.
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

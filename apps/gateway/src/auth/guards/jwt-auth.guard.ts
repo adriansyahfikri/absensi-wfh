@@ -14,8 +14,6 @@ interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }
 
-// Applied globally (see auth.module.ts) so every route is protected by
-// default; routes must opt out explicitly with @Public().
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(

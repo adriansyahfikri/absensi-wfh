@@ -1,10 +1,4 @@
-// One-off dev tool for the bootstrap problem: POST /employees requires an
-// ADMIN token, but there is no admin yet on a fresh database. Connects
-// directly to MySQL and inserts the row itself — earlier this printed a raw
-// INSERT statement for manual copy-paste, but bcrypt hashes start with
-// `$2b$10$...` and pasting that into PowerShell silently mangles the `$`
-// sequences before the SQL ever reaches MySQL. Doing the insert here avoids
-// that whole class of bug.
+// For initialize admin account.
 //
 // Usage: node scripts/seed-admin.js [username] [password]
 // Assumes `docker compose up` is running and MySQL's port is published to

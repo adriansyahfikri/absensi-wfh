@@ -18,7 +18,6 @@ export class UserService {
     return bcrypt.hash(plain, SALT_ROUNDS);
   }
 
-  // The only place `password` is explicitly selected — see decision #7 in CONTEXT.md.
   async validateCredentials(
     username: string,
     password: string,
@@ -44,7 +43,6 @@ export class UserService {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...safeUser } = user;
     return safeUser;
   }

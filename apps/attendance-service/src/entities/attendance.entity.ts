@@ -5,9 +5,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-// employeeId is a plain FK column, not a TypeORM relation — the Employee
-// entity class belongs to employee-service, and this service must not
-// import across the service boundary even though they share a database.
 @Entity('attendance')
 export class Attendance {
   @PrimaryGeneratedColumn()
