@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../auth/AuthContext';
 import { api, ApiError } from '../api/client';
-import { EmployeeStatus, type Attendance, type Employee } from '../api/types';
+import { EmployeeStatus, type Attendance, type Employee, type PaginatedResult } from '../api/types';
 import { AppShell } from '../components/AppShell';
 import { DataTable, type DataTableColumn } from '../components/DataTable';
+import { Pagination } from '../components/Pagination';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
@@ -13,6 +14,11 @@ import { EmployeeFormModal, type EmployeeFormValues } from './EmployeeFormModal'
 import './AdminDashboardPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+const PAGE_SIZE = 10;
+// Matches the @Max(100) ceiling on PaginationQueryDto — the directory needs
+// every employee to resolve attendance rows, not just one page of them, so
+// it asks for the largest page the API allows rather than looping requests.
+const DIRECTORY_LIMIT = 1000;
 
 function formatDateTime(iso: string | null) {
   if (!iso) return '—';
@@ -34,6 +40,8 @@ export function AdminDashboardPage() {
   const [employeesLoading, setEmployeesLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<EmployeeStatus | ''>('');
   const [search, setSearch] = useState('');
+  const [employeesPage, setEmployeesPage] = useState(1);
+  const [employeesTotal, setEmployeesTotal] = useState(0);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -41,6 +49,8 @@ export function AdminDashboardPage() {
   const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('');
   const [employeeSearch, setEmployeeSearch] = useState('');
+  const [attendancePage, setAttendancePage] = useState(1);
+  const [attendanceTotal, setAttendanceTotal] = useState(0);
   const [employeeDirectory, setEmployeeDirectory] = useState<Map<number, Employee>>(new Map());
 
   const loadEmployees = useCallback(async () => {
@@ -49,20 +59,23 @@ export function AdminDashboardPage() {
       const params = new URLSearchParams();
       if (statusFilter) params.set('status', statusFilter);
       if (search) params.set('search', search);
-      const query = params.toString();
-      const data = await api.get<Employee[]>(`/employees${query ? `?${query}` : ''}`, token);
-      setEmployees(data);
+      params.set('page', String(employeesPage));
+      params.set('limit', String(PAGE_SIZE));
+      const data = await api.get<PaginatedResult<Employee>>(`/employees?${params.toString()}`, token);
+      setEmployees(data.data);
+      setEmployeesTotal(data.total);
     } finally {
       setEmployeesLoading(false);
     }
-  }, [token, statusFilter, search]);
+  }, [token, statusFilter, search, employeesPage]);
 
-  // Unfiltered, independent of the Employees tab's search/status filters —
-  // the attendance table needs to resolve every employeeId it sees, not
-  // just whichever subset the admin last searched for.
+  // Unfiltered (aside from the API's own pagination ceiling), independent of
+  // the Employees tab's search/status/page — the attendance table needs to
+  // resolve every employeeId it sees, not just whichever page the admin last
+  // looked at.
   const loadEmployeeDirectory = useCallback(async () => {
-    const data = await api.get<Employee[]>('/employees', token);
-    setEmployeeDirectory(new Map(data.map((employee) => [employee.id, employee])));
+    const data = await api.get<PaginatedResult<Employee>>(`/employees?limit=${DIRECTORY_LIMIT}`, token);
+    setEmployeeDirectory(new Map(data.data.map((employee) => [employee.id, employee])));
   }, [token]);
 
   const loadAttendance = useCallback(async () => {
@@ -70,30 +83,16 @@ export function AdminDashboardPage() {
     try {
       const params = new URLSearchParams();
       if (dateFilter) params.set('date', dateFilter);
-      const query = params.toString();
-      const data = await api.get<Attendance[]>(`/attendance${query ? `?${query}` : ''}`, token);
-      setAttendance(data);
+      if (employeeSearch) params.set('employeeSearch', employeeSearch);
+      params.set('page', String(attendancePage));
+      params.set('limit', String(PAGE_SIZE));
+      const data = await api.get<PaginatedResult<Attendance>>(`/attendance?${params.toString()}`, token);
+      setAttendance(data.data);
+      setAttendanceTotal(data.total);
     } finally {
       setAttendanceLoading(false);
     }
-  }, [token, dateFilter]);
-
-  // The attendance API only filters by date/employeeId (see
-  // attendance.service.ts findAll) — there's no server-side text search, so
-  // matching by employee code/name is done here against the already-loaded
-  // page using the employee directory.
-  const visibleAttendance = useMemo(() => {
-    const query = employeeSearch.trim().toLowerCase();
-    if (!query) return attendance;
-    return attendance.filter((row) => {
-      const employee = employeeDirectory.get(row.employeeId);
-      if (!employee) return false;
-      return (
-        employee.employeeCode.toLowerCase().includes(query) ||
-        employee.fullName.toLowerCase().includes(query)
-      );
-    });
-  }, [attendance, employeeDirectory, employeeSearch]);
+  }, [token, dateFilter, employeeSearch, attendancePage]);
 
   useEffect(() => {
     void loadEmployees();
@@ -115,14 +114,14 @@ export function AdminDashboardPage() {
     }
     setShowForm(false);
     setEditingEmployee(null);
-    await loadEmployees();
+    await Promise.all([loadEmployees(), loadEmployeeDirectory()]);
   }
 
   async function handleDeactivate(employee: Employee) {
     if (!window.confirm(`Deactivate ${employee.fullName}? This does not delete their history.`)) return;
     try {
       await api.delete(`/employees/${employee.id}`, token);
-      await loadEmployees();
+      await Promise.all([loadEmployees(), loadEmployeeDirectory()]);
     } catch (err) {
       window.alert(err instanceof ApiError ? err.message : 'Failed to deactivate employee.');
     }
@@ -244,7 +243,10 @@ export function AdminDashboardPage() {
                 label="Search"
                 placeholder="Name, code, or email"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setEmployeesPage(1);
+                }}
               />
               <div className="field">
                 <label className="field__label" htmlFor="status-filter">
@@ -254,7 +256,10 @@ export function AdminDashboardPage() {
                   id="status-filter"
                   className="field__input"
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as EmployeeStatus | '')}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value as EmployeeStatus | '');
+                    setEmployeesPage(1);
+                  }}
                 >
                   <option value="">All</option>
                   <option value={EmployeeStatus.ACTIVE}>Active</option>
@@ -278,6 +283,12 @@ export function AdminDashboardPage() {
               loading={employeesLoading}
               emptyMessage="No employees found."
             />
+            <Pagination
+              page={employeesPage}
+              limit={PAGE_SIZE}
+              total={employeesTotal}
+              onPageChange={setEmployeesPage}
+            />
           </section>
         ) : (
           <section className="admin-page__panel">
@@ -286,22 +297,34 @@ export function AdminDashboardPage() {
                 label="Date"
                 type="date"
                 value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  setAttendancePage(1);
+                }}
               />
               <Field
                 label="Employee"
                 placeholder="Code or name"
                 value={employeeSearch}
-                onChange={(e) => setEmployeeSearch(e.target.value)}
+                onChange={(e) => {
+                  setEmployeeSearch(e.target.value);
+                  setAttendancePage(1);
+                }}
               />
             </div>
 
             <DataTable
               columns={attendanceColumns}
-              rows={visibleAttendance}
+              rows={attendance}
               getRowKey={(row) => row.id}
               loading={attendanceLoading}
               emptyMessage="No attendance records found."
+            />
+            <Pagination
+              page={attendancePage}
+              limit={PAGE_SIZE}
+              total={attendanceTotal}
+              onPageChange={setAttendancePage}
             />
           </section>
         )}

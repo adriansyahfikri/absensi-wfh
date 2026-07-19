@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { Between, Repository } from 'typeorm';
-import { CheckInDto, CheckOutDto, QueryAttendanceDto } from '@app/common';
+import { CheckInDto, CheckOutDto, PaginatedResult, QueryAttendanceDto } from '@app/common';
 import { Attendance } from '../entities/attendance.entity';
 
 @Injectable()
@@ -62,10 +62,14 @@ export class AttendanceService {
     });
   }
 
-  findAll(query: QueryAttendanceDto): Promise<Attendance[]> {
+  async findAll(query: QueryAttendanceDto): Promise<PaginatedResult<Attendance>> {
     const qb = this.attendanceRepo.createQueryBuilder('attendance');
 
-    if (query.employeeId) {
+    if (query.employeeIds && query.employeeIds.length > 0) {
+      qb.andWhere('attendance.employeeId IN (:...employeeIds)', {
+        employeeIds: query.employeeIds,
+      });
+    } else if (query.employeeId) {
       qb.andWhere('attendance.employeeId = :employeeId', {
         employeeId: query.employeeId,
       });
@@ -78,8 +82,15 @@ export class AttendanceService {
       });
     }
 
-    qb.orderBy('attendance.checkInTime', 'DESC');
-    return qb.getMany();
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const [data, total] = await qb
+      .orderBy('attendance.checkInTime', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total, page, limit };
   }
 
   private getDayRange(date: Date): { start: Date; end: Date } {

@@ -15,20 +15,29 @@ import { extname } from 'path';
 import { ClientProxy } from '@nestjs/microservices';
 import {
   ATTENDANCE_PATTERNS,
+  EMPLOYEE_PATTERNS,
   SERVICE_NAMES,
   QueryAttendanceDto,
   Role,
 } from '@app/common';
-import type { JwtPayload } from '@app/common';
+import type { JwtPayload, PaginatedResult } from '@app/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { sendTcp } from '../common/tcp.util';
+
+// Minimal shape needed to resolve an employeeSearch string to ids — not the
+// full Employee entity, just enough to type the employee-service response.
+interface EmployeeIdOnly {
+  id: number;
+}
 
 @Controller('attendance')
 export class AttendanceController {
   constructor(
     @Inject(SERVICE_NAMES.ATTENDANCE)
     private readonly attendanceClient: ClientProxy,
+    @Inject(SERVICE_NAMES.EMPLOYEE)
+    private readonly employeeClient: ClientProxy,
   ) {}
 
   // Photo is stored here at the Gateway (see CONTEXT.md decision #5) —
@@ -81,7 +90,32 @@ export class AttendanceController {
 
   @Roles(Role.ADMIN)
   @Get()
-  findAll(@Query() query: QueryAttendanceDto) {
-    return sendTcp(this.attendanceClient, ATTENDANCE_PATTERNS.FIND_ALL, query);
+  async findAll(@Query() query: QueryAttendanceDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    let employeeIds: number[] | undefined;
+
+    // attendance-service can't resolve employee code/name itself (it doesn't
+    // own the employee table — see attendance.entity.ts), so the Gateway
+    // resolves the search term to employeeIds here, then filters by id.
+    if (query.employeeSearch) {
+      const matches = await sendTcp<PaginatedResult<EmployeeIdOnly>>(
+        this.employeeClient,
+        EMPLOYEE_PATTERNS.FIND_ALL,
+        { search: query.employeeSearch, page: 1, limit: 100 },
+      );
+      if (matches.data.length === 0) {
+        return { data: [], total: 0, page, limit };
+      }
+      employeeIds = matches.data.map((employee) => employee.id);
+    }
+
+    return sendTcp(this.attendanceClient, ATTENDANCE_PATTERNS.FIND_ALL, {
+      date: query.date,
+      employeeId: query.employeeId,
+      employeeIds,
+      page,
+      limit,
+    });
   }
 }

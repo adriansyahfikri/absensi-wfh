@@ -15,8 +15,10 @@ export * from './dto/create-employee.dto';
 export * from './dto/update-employee.dto';
 export * from './dto/check-in.dto';
 export * from './dto/check-out.dto';
+export * from './dto/pagination.dto';
 export * from './dto/query-employee.dto';
 export * from './dto/query-attendance.dto';
 
 // interfaces
 export * from './interfaces/jwt-payload.interface';
+export * from './interfaces/paginated-result.interface';

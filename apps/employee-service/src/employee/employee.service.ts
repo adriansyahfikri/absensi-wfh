@@ -7,6 +7,7 @@ import {
   UpdateEmployeeDto,
   QueryEmployeeDto,
   EmployeeStatus,
+  PaginatedResult,
   Role,
 } from '@app/common';
 import { Employee } from '../entities/employee.entity';
@@ -71,7 +72,7 @@ export class EmployeeService {
     });
   }
 
-  findAll(query: QueryEmployeeDto): Promise<Employee[]> {
+  async findAll(query: QueryEmployeeDto): Promise<PaginatedResult<Employee>> {
     const qb = this.employeeRepo.createQueryBuilder('employee');
 
     if (query.status) {
@@ -84,7 +85,15 @@ export class EmployeeService {
       );
     }
 
-    return qb.getMany();
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const [data, total] = await qb
+      .orderBy('employee.id', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total, page, limit };
   }
 
   async findOne(id: number): Promise<Employee> {
