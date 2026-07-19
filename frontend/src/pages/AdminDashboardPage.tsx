@@ -15,10 +15,7 @@ import './AdminDashboardPage.css';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 const PAGE_SIZE = 10;
-// Matches the @Max(100) ceiling on PaginationQueryDto — the directory needs
-// every employee to resolve attendance rows, not just one page of them, so
-// it asks for the largest page the API allows rather than looping requests.
-const DIRECTORY_LIMIT = 1000;
+const DIRECTORY_LIMIT = 100;
 
 function formatDateTime(iso: string | null) {
   if (!iso) return '—';
@@ -69,10 +66,6 @@ export function AdminDashboardPage() {
     }
   }, [token, statusFilter, search, employeesPage]);
 
-  // Unfiltered (aside from the API's own pagination ceiling), independent of
-  // the Employees tab's search/status/page — the attendance table needs to
-  // resolve every employeeId it sees, not just whichever page the admin last
-  // looked at.
   const loadEmployeeDirectory = useCallback(async () => {
     const data = await api.get<PaginatedResult<Employee>>(`/employees?limit=${DIRECTORY_LIMIT}`, token);
     setEmployeeDirectory(new Map(data.data.map((employee) => [employee.id, employee])));
@@ -106,15 +99,27 @@ export function AdminDashboardPage() {
     if (tab === 'attendance') void loadAttendance();
   }, [tab, loadAttendance]);
 
-  async function handleCreateOrUpdate(values: Partial<EmployeeFormValues>) {
-    if (editingEmployee) {
-      await api.patch(`/employees/${editingEmployee.id}`, values, token);
-    } else {
-      await api.post('/employees', values, token);
-    }
+  async function handleCreate(values: Partial<EmployeeFormValues>) {
+    await api.post('/employees', values, token);
     setShowForm(false);
     setEditingEmployee(null);
     await Promise.all([loadEmployees(), loadEmployeeDirectory()]);
+  }
+
+  async function handleUpdate(employee: Employee, values: Partial<EmployeeFormValues>) {
+    if (!window.confirm(`Save changes to ${employee.fullName}?`)) return;
+    await api.patch(`/employees/${employee.id}`, values, token);
+    setShowForm(false);
+    setEditingEmployee(null);
+    await Promise.all([loadEmployees(), loadEmployeeDirectory()]);
+  }
+
+  async function handleFormSubmit(values: Partial<EmployeeFormValues>) {
+    if (editingEmployee) {
+      await handleUpdate(editingEmployee, values);
+    } else {
+      await handleCreate(values);
+    }
   }
 
   async function handleDeactivate(employee: Employee) {
@@ -337,7 +342,7 @@ export function AdminDashboardPage() {
             setShowForm(false);
             setEditingEmployee(null);
           }}
-          onSubmit={handleCreateOrUpdate}
+          onSubmit={handleFormSubmit}
         />
       ) : null}
     </AppShell>
