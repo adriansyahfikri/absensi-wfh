@@ -3,8 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { SERVICE_NAMES } from '@app/common';
 
-// Central registration for both TCP clients so every feature module can
-// import just this one module instead of repeating registerAsync config.
 @Module({
   imports: [
     ClientsModule.registerAsync([

@@ -19,8 +19,6 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  // Never selected by default; UserService.validateCredentials() is the
-  // only place that explicitly selects it.
   @Column({ select: false })
   password: string;
 

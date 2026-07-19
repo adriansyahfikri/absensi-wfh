@@ -8,9 +8,6 @@ import { EmployeeModule } from './employee/employee.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
 
-    // Database connection. All values come from config (.env / container env),
-    // which is what satisfies the "connect to any database" objective — swap
-    // the driver here and nothing else changes.
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -22,8 +19,6 @@ import { EmployeeModule } from './employee/employee.module';
         password: config.get('DB_PASSWORD', ''),
         database: config.get('DB_NAME', 'wfh_attendance'),
         autoLoadEntities: true,
-        // synchronize auto-creates tables from entities. Convenient for this
-        // test; in production you would use migrations instead.
         synchronize: true,
       }),
     }),

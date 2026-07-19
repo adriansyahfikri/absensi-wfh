@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = useMemo(() => (token ? decodeToken(token) : null), [token]);
 
   useEffect(() => {
-    // A garbage or expired token decodes to null — clear it so we don't loop.
     if (token && !user) {
       setToken(null);
       return;
