@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { api, ApiError } from '../api/client';
 import type { Attendance } from '../api/types';
 import { AppShell } from '../components/AppShell';
-import { PhotoUploader, type PhotoUploaderState } from '../components/PhotoUploader';
+import { CameraCapture, type CameraCaptureState } from '../components/CameraCapture';
 import { Button } from '../components/Button';
 import { DataTable, type DataTableColumn } from '../components/DataTable';
 import { Badge } from '../components/Badge';
@@ -33,7 +33,7 @@ export function CheckInPage() {
   const [history, setHistory] = useState<Attendance[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [photo, setPhoto] = useState<File | null>(null);
-  const [uploaderState, setUploaderState] = useState<PhotoUploaderState>('idle');
+  const [uploaderState, setUploaderState] = useState<CameraCaptureState>('idle');
   const [uploaderMessage, setUploaderMessage] = useState('');
   const [checkOutState, setCheckOutState] = useState<'idle' | 'loading'>('idle');
   const [banner, setBanner] = useState('');
@@ -126,7 +126,7 @@ export function CheckInPage() {
             </div>
           ) : (
             <div className="checkin-form">
-              <PhotoUploader
+              <CameraCapture
                 value={photo}
                 onChange={(file) => {
                   setPhoto(file);

@@ -45,6 +45,12 @@
   background: var(--color-danger-soft);
 }
 
+.btn--icon {
+  width: 2.5rem;
+  padding: 0;
+  flex-shrink: 0;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
