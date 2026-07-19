@@ -38,3 +38,10 @@ export interface Attendance {
   checkOutTime: string | null;
   createdAt: string;
 }
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
